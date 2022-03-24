@@ -22,11 +22,15 @@ DFPlayer - A Mini MP3 Player For Arduino
 #include "Arduino.h"
 #include "SoftwareSerial.h"
 #include "DFRobotDFPlayerMini.h"
+#include "limits.h"
 
 SoftwareSerial mySoftwareSerial(10, 11); // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
 void printDetail(uint8_t type, int value);
 int fileCount = 0;
+int currentSound = 0;
+
+int sounds [200];
 
 void setup()
 {
@@ -53,9 +57,25 @@ void setup()
   pinMode(2, INPUT_PULLUP);
 }
 
+void shuffle(int *array, int size) {
+  if(size < 1)
+    return;
+  
+  for(int i = 0; i < (size - 1); size++) {
+    int j = i + random() / ( LONG_MAX / ( size - i) + 1 );
+    int t = array[j];
+    array[j] = array[i];
+    array[i] = t;
+  }
+
+  currentSound = fileCount;
+}
+
 void loop()
 {
-  static unsigned long timer = millis();
+  if(currentSound == 0) {
+    shuffle(sounds, fileCount);
+  }
   
   if (myDFPlayer.available()) {
     printDetail(myDFPlayer.readType(), myDFPlayer.read()); //Print the detail message from DFPlayer to handle different errors and states.
@@ -65,8 +85,8 @@ void loop()
   Serial.println(myDFPlayer.available());
   
   if (!myDFPlayer.available() && (digitalRead(2) == 0)){
-    int fileToPlay = random(1, fileCount + 1); // pick random juuw
-    myDFPlayer.play(fileToPlay);
+    myDFPlayer.play(sounds[currentSound - 1]);
+    currentSound--;
   }
 
   //delay(100);
