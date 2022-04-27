@@ -31,9 +31,11 @@ int fileCount = 0;
 int currentSound = 0;
 
 int sounds [200];
+bool pressed = false;
 
 void setup()
 {
+
   mySoftwareSerial.begin(9600);
   Serial.begin(115200);
   
@@ -54,21 +56,30 @@ void setup()
   myDFPlayer.volume(30);  //Set volume value. From 0 to 30
   fileCount = myDFPlayer.readFileCounts(); // max for mod of random play.
   //myDFPlayer.play(1);  //Play the first mp3
+
+  for (size_t i = 0; i < fileCount; i++)
+    sounds[i] = i;  
+
   pinMode(2, INPUT_PULLUP);
 }
 
 void shuffle(int *array, int size) {
   if(size < 1)
     return;
-  
-  for(int i = 0; i < (size - 1); size++) {
-    int j = i + random() / ( LONG_MAX / ( size - i) + 1 );
+
+  for(int i = 0; i < (size-1); i++) {
+    int j = i + random(0,size-i);
     int t = array[j];
     array[j] = array[i];
     array[i] = t;
   }
 
   currentSound = fileCount;
+}
+
+bool playerIsAvailable(){
+  // Library inverts this
+  return !myDFPlayer.available();
 }
 
 void loop()
@@ -79,15 +90,18 @@ void loop()
   
   if (myDFPlayer.available()) {
     printDetail(myDFPlayer.readType(), myDFPlayer.read()); //Print the detail message from DFPlayer to handle different errors and states.
-  }
+  }  
 
-  Serial.println(digitalRead(2));
-  Serial.println(myDFPlayer.available());
-  
-  if (!myDFPlayer.available() && (digitalRead(2) == 0)){
+  // If song played and pressed button
+  if (playerIsAvailable() && (digitalRead(2) == 0)){
+    if(pressed)
+      return;
+    pressed = true;
     myDFPlayer.play(sounds[currentSound - 1]);
     currentSound--;
   }
+  if(digitalRead(2) == 1)
+    pressed = false;
 
   //delay(100);
 }
