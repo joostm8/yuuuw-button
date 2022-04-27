@@ -53,12 +53,12 @@ void setup()
   }
   Serial.println(F("DFPlayer Mini online."));
   
-  myDFPlayer.volume(30);  //Set volume value. From 0 to 30
+  myDFPlayer.volume(20);  //Set volume value. From 0 to 30
   fileCount = myDFPlayer.readFileCounts(); // max for mod of random play.
   //myDFPlayer.play(1);  //Play the first mp3
 
   for (size_t i = 0; i < fileCount; i++)
-    sounds[i] = i;  
+    sounds[i] = i+1;  
 
   pinMode(2, INPUT_PULLUP);
 }
@@ -72,7 +72,10 @@ void shuffle(int *array, int size) {
     int t = array[j];
     array[j] = array[i];
     array[i] = t;
+    Serial.print(t );
+    Serial.print(" ");
   }
+  Serial.println("");
 
   currentSound = fileCount;
 }
